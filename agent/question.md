@@ -315,3 +315,20 @@ git/object、issues/document、admin PATCH 回讀。
 | D | git 初始化與首次 commit | git init；依 `.gitignore` 排除 `.env`/`node_modules`/`dist`/`data`/`*.db` 等敏感檔；commit 作者為 s12ryt 本人憑證，**禁用** `sisyphus-dev-ai` / `sisyphus@mengmota.com` |
 | E | 建立公開倉庫並推送 | 建立 `s12ryt/huggingface-github`（public）；推送後遠端含完整原始碼，且 `.env`/`node_modules`/`data`/`*.db` 不出現在遠端；遠端 README 標題為 `huggingface-github` |
 | 共 | 不新增功能、不改程式邏輯 | 基準維持 47 檔 / 914 測試綠；雙 tsc EXIT 0 |
+
+## 26. 輪次 22 驗收範圍（ghcr 自動建置 workflow + releases 版本顯示）
+
+用戶需求原文：「做一個workflow自動編譯ghcr的docker鏡像,還要有releases版本顯示」
+
+決策（question 工具確認）：
+- 觸發與版本策略：**推 git tag `v*`（如 v0.1.0）→ 自動發 GitHub Release + 建置鏡像打版本號 tag**
+- README：**加 Release 版本徽章 + ghcr 鏡像徽章**（另附 workflow 狀態徽章）
+
+| # | 項目 | 驗收標準 |
+|---|---|---|
+| A | workflow 觸發 | `.github/workflows/release.yml` 僅在 `push` tag `v*` 觸發；具 `contents: write`（建 Release）與 `packages: write`（推 ghcr）權限 |
+| B | ghcr 建置與推送 | 以既有 `Dockerfile` 建置，`docker/login-action` 登入 `ghcr.io`（`GITHUB_TOKEN`），`docker/build-push-action` push 至 `ghcr.io/s12ryt/huggingface-github`；用 `metadata-action` semver 產生 `{{version}}`、`{{major}}.{{minor}}`、非 prerelease 自動 `latest` |
+| C | GitHub Release | `softprops/action-gh-release` 於同一 tag 自動建立 Release，含自動產生的 release notes 與對應鏡像座標 |
+| D | README 版本顯示 | 頂部加 Release 版本徽章（`github/v/release`）、ghcr 鏡像徽章、release workflow 狀態徽章 |
+| E | YAML 合法性 | `release.yml` 為合法 YAML，關鍵欄位（on.push.tags、permissions、jobs.docker.steps）齊備 |
+| 共 | 不改應用程式碼 | 不動 src/tests；基準維持 47 檔 / 914 測試綠；雙 tsc EXIT 0 |

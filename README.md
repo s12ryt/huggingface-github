@@ -4,6 +4,9 @@
 所有寫入前都先以 AES-256-GCM 加密。Git packfile、issue 與合併請求的權威副本
 都放在儲存桶裡，SQLite 只是可隨時重建的查詢快取。
 
+[![Release](https://img.shields.io/github/v/release/s12ryt/huggingface-github?sort=semver)](https://github.com/s12ryt/huggingface-github/releases)
+[![Container image](https://img.shields.io/badge/ghcr.io-huggingface--github-2496ED?logo=docker&logoColor=white)](https://github.com/s12ryt/huggingface-github/pkgs/container/huggingface-github)
+[![Release workflow](https://github.com/s12ryt/huggingface-github/actions/workflows/release.yml/badge.svg)](https://github.com/s12ryt/huggingface-github/actions/workflows/release.yml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
 ## 這是什麼
