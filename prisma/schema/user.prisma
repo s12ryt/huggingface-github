@@ -1,0 +1,66 @@
+// 使用者身分與憑證模型。
+//
+// 模型：
+//   - User                 第 12 行：帳號、密碼雜湊、角色、強制改密標記
+//   - Session              第 44 行：cookie 工作階段（僅存 token 雜湊）
+//   - PersonalAccessToken  第 58 行：Git over HTTPS 使用的 PAT（僅存雜湊）
+
+model User {
+  id                 String    @id @default(cuid())
+  username           String    @unique
+  passwordHash       String
+  displayName        String?
+  role               String    @default("user")
+  mustChangePassword Boolean   @default(false)
+  isActive           Boolean   @default(true)
+  lastLoginAt        DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  sessions           Session[]
+  accessTokens       PersonalAccessToken[]
+  repos              Repo[]
+  collaborations     Collaborator[]
+  createdInviteCodes InviteCode[]
+  inviteCodeUses     InviteCodeUse[]
+  issues             Issue[]
+  issueComments      IssueComment[]
+  pullRequests       PullRequest[]         @relation("PullAuthor")
+  mergedPullRequests PullRequest[]         @relation("PullMerger")
+  pullRequestReviews PullRequestReview[]
+
+  @@index([role])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  userAgent String?
+  ipAddress String?
+  createdAt DateTime @default(now())
+  lastSeenAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model PersonalAccessToken {
+  id         String    @id @default(cuid())
+  userId     String
+  name       String
+  tokenHash  String    @unique
+  tokenPrefix String
+  scopes     String    @default("repo")
+  expiresAt  DateTime?
+  lastUsedAt DateTime?
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, name])
+}

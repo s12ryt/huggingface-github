@@ -1,0 +1,65 @@
+// Pull Request、審查與行級留言模型（雙寫架構的 SQLite 查詢層）。
+//
+// 模型：
+//   - PullRequest              第 14 行：head/base 的 ref 與 oid 快照；storagePath 為 JSON 真相檔
+//   - PullRequestReview        第 45 行：一次審查（approved / changes_requested / commented）
+//   - PullRequestReviewComment 第 61 行：行級留言，side 預設標註新版（RIGHT）
+//
+// number 來自 RepoItemNumber 共用序列，與 Issue 不重號。
+
+model PullRequest {
+  id           String    @id @default(cuid())
+  repoId       String
+  number       Int
+  authorId     String
+  title        String
+  body         String    @default("")
+  state        String    @default("open")
+  headRef      String
+  baseRef      String
+  headOid      String
+  baseOid      String
+  mergedAt     DateTime?
+  mergedById   String?
+  storagePath String
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  repo     Repo                @relation(fields: [repoId], references: [id], onDelete: Cascade)
+  author   User                @relation("PullAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  mergedBy User?               @relation("PullMerger", fields: [mergedById], references: [id], onDelete: SetNull)
+  reviews  PullRequestReview[]
+
+  @@unique([repoId, number])
+  @@index([repoId, state])
+  @@index([authorId])
+}
+
+model PullRequestReview {
+  id            String   @id @default(cuid())
+  pullRequestId String
+  reviewerId    String
+  state         String
+  body          String   @default("")
+  createdAt     DateTime @default(now())
+
+  pullRequest PullRequest                @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
+  reviewer    User                       @relation(fields: [reviewerId], references: [id], onDelete: Cascade)
+  comments    PullRequestReviewComment[]
+
+  @@index([pullRequestId])
+}
+
+model PullRequestReviewComment {
+  id        String   @id @default(cuid())
+  reviewId  String
+  filePath  String
+  line      Int
+  side      String   @default("RIGHT")
+  body      String
+  createdAt DateTime @default(now())
+
+  review PullRequestReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@index([reviewId])
+}

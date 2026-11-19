@@ -1,0 +1,17 @@
+node_modules/
+dist/
+coverage/
+*.log
+
+.env
+.env.*
+!.env.example
+
+data/
+cache/
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+prisma/*.db
+prisma/migrations/dev.db*

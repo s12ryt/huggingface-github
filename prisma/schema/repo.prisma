@@ -1,0 +1,70 @@
+// 倉庫、權限與 ref 模型。
+//
+// 模型：
+//   - Repo            第 16 行：倉庫本體；storagePath 指向 儲存桶 上的權威資料位置
+//   - Collaborator    第 47 行：協作者權限（read / write / admin），預設最小權限
+//   - RepoRef         第 62 行：ref 快照（儲存桶 為權威，此處為查詢快取）
+//   - RepoItemNumber  第 77 行：issue 與 PR 共用的編號序列，於 DB 層強制不重號
+
+model Repo {
+  id            String   @id @default(cuid())
+  ownerId       String
+  name          String
+  description   String?
+  visibility    String   @default("private")
+  defaultBranch String   @default("main")
+  issueCounter  Int      @default(0)
+  storagePath  String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  owner         User             @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  collaborators Collaborator[]
+  refs          RepoRef[]
+  packFiles     PackFile[]
+  objectIndexes GitObjectIndex[]
+  itemNumbers   RepoItemNumber[]
+  issues        Issue[]
+  pullRequests  PullRequest[]
+
+  @@unique([ownerId, name])
+  @@index([visibility])
+}
+
+model Collaborator {
+  id        String   @id @default(cuid())
+  repoId    String
+  userId    String
+  role      String   @default("read")
+  createdAt DateTime @default(now())
+
+  repo Repo @relation(fields: [repoId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([repoId, userId])
+  @@index([userId])
+}
+
+model RepoRef {
+  id        String   @id @default(cuid())
+  repoId    String
+  name      String
+  targetOid String
+  updatedAt DateTime @updatedAt
+
+  repo Repo @relation(fields: [repoId], references: [id], onDelete: Cascade)
+
+  @@unique([repoId, name])
+}
+
+model RepoItemNumber {
+  id        String   @id @default(cuid())
+  repoId    String
+  number    Int
+  kind      String
+  createdAt DateTime @default(now())
+
+  repo Repo @relation(fields: [repoId], references: [id], onDelete: Cascade)
+
+  @@unique([repoId, number])
+}

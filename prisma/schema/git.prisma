@@ -1,0 +1,44 @@
+// Git packfile 與物件索引（E+ 方案的 SQLite 快取層）。
+//
+// 模型：
+//   - PackFile        第 16 行：儲存後端上的 packfile 中介資料
+//   - GitObjectIndex  第 32 行：object → (pack, offset, size) 三元組，供 HTTP Range 精準取用
+//
+// 索引權威副本存於儲存後端，本表僅為可重建的查詢快取。
+// deltaChain 以 JSON 陣列儲存展平後的 base oid（由近到遠），
+// 讓還原 delta 物件時可一次算出所有需要的 Range，不必遞迴查表。
+//
+// 不存下載網址：HuggingFace 的 resolve 路徑可由資料集 id、修訂版本與檔案路徑
+// 直接推導，不需要像預簽名網址那樣快取與換發。
+
+model PackFile {
+  id          String   @id @default(cuid())
+  repoId      String
+  name        String
+  byteSize    Int
+  objectCount Int
+  createdAt   DateTime @default(now())
+
+  repo          Repo             @relation(fields: [repoId], references: [id], onDelete: Cascade)
+  objectIndexes GitObjectIndex[]
+
+  @@unique([repoId, name])
+}
+
+model GitObjectIndex {
+  id           String  @id @default(cuid())
+  repoId       String
+  packFileId   String
+  oid          String
+  objectType   String
+  packOffset   Int
+  storedSize   Int
+  inflatedSize Int
+  deltaChain   String?
+
+  repo     Repo     @relation(fields: [repoId], references: [id], onDelete: Cascade)
+  packFile PackFile @relation(fields: [packFileId], references: [id], onDelete: Cascade)
+
+  @@unique([repoId, oid])
+  @@index([packFileId])
+}

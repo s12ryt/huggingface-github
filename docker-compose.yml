@@ -1,0 +1,24 @@
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    ports:
+      - '${PORT:-3000}:3000'
+    environment:
+      HOST: 0.0.0.0
+      PORT: 3000
+      DATABASE_URL: file:/app/data/app.db
+      PUBLIC_URL: ${PUBLIC_URL:?set PUBLIC_URL in .env}
+      SESSION_SECRET: ${SESSION_SECRET:?set SESSION_SECRET in .env}
+      REGISTRATION_MODE: ${REGISTRATION_MODE:-closed}
+      HF_DATASET_ID: ${HF_DATASET_ID:?set HF_DATASET_ID in .env}
+      HF_REVISION: ${HF_REVISION:-main}
+      HF_TOKEN: ${HF_TOKEN:-}
+      STORAGE_ENCRYPTION_KEY: ${STORAGE_ENCRYPTION_KEY:?set STORAGE_ENCRYPTION_KEY in .env}
+      LFS_THRESHOLD_BYTES: ${LFS_THRESHOLD_BYTES:-10MB}
+      CACHE_MAX_BYTES: ${CACHE_MAX_BYTES:-2GB}
+    volumes:
+      - app-data:/app/data
+
+volumes:
+  app-data:

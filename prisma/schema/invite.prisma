@@ -1,0 +1,43 @@
+// 邀請碼模型（註冊模式 invite 使用）。
+//
+// 模型：
+//   - InviteCode     第 16 行：管理員簽發的邀請碼，僅存雜湊；codePrefix 供管理介面辨識
+//   - InviteCodeUse  第 41 行：使用紀錄，同一碼同一人僅能成功一次
+//
+// 管理員可配置參數：maxUses（使用次數）、expiresAt（有效期）、role（註冊後角色）、
+// note（備註）、usernamePattern（用戶名規則正則）、revokedAt（撤銷）。
+
+model InviteCode {
+  id              String    @id @default(cuid())
+  codeHash        String    @unique
+  codePrefix      String
+  createdById     String
+  role            String    @default("user")
+  maxUses         Int       @default(1)
+  usedCount       Int       @default(0)
+  expiresAt       DateTime?
+  note            String?
+  usernamePattern String?
+  revokedAt       DateTime?
+  createdAt       DateTime  @default(now())
+
+  createdBy User            @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  uses      InviteCodeUse[]
+
+  @@index([createdById])
+  @@index([revokedAt])
+}
+
+model InviteCodeUse {
+  id           String   @id @default(cuid())
+  inviteCodeId String
+  userId       String
+  ipAddress    String?
+  usedAt       DateTime @default(now())
+
+  inviteCode InviteCode @relation(fields: [inviteCodeId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([inviteCodeId, userId])
+  @@index([userId])
+}

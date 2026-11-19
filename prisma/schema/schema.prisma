@@ -1,0 +1,21 @@
+// 資料來源與 client 產生器設定。
+//
+// 本專案採用 Prisma 多檔 schema（prisma/schema/ 目錄）：
+//   - schema.prisma  本檔：datasource 與 generator
+//   - user.prisma    使用者、工作階段、個人存取權杖
+//   - invite.prisma  邀請碼與使用紀錄
+//   - repo.prisma    倉庫、協作者、ref、共用編號序列
+//   - git.prisma     packfile 與物件索引（E+ 方案的 SQLite 快取層）
+//   - issue.prisma   Issue 與留言
+//   - pull.prisma    Pull Request、審查與行級留言
+//
+// SQLite 不支援 enum，故狀態與角色一律以 String 儲存，合法值由應用層驗證。
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}

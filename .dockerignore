@@ -1,0 +1,15 @@
+node_modules
+dist
+coverage
+tests
+data
+cache
+*.db
+*.sqlite
+*.sqlite3
+.env
+.git
+.gitignore
+agent
+README.md
+vitest.config.ts

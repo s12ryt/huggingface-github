@@ -1,0 +1,43 @@
+// Issue 與留言模型（雙寫架構的 SQLite 查詢層）。
+//
+// 模型：
+//   - Issue         第 13 行：storagePath 指向 儲存桶 上的 JSON 真相檔
+//   - IssueComment  第 36 行：留言，隨 issue 級聯清除
+//
+// number 來自 RepoItemNumber 共用序列，與 PullRequest 不重號。
+
+model Issue {
+  id           String    @id @default(cuid())
+  repoId       String
+  number       Int
+  authorId     String
+  title        String
+  body         String    @default("")
+  state        String    @default("open")
+  closedAt     DateTime?
+  storagePath String
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  repo     Repo           @relation(fields: [repoId], references: [id], onDelete: Cascade)
+  author   User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  comments IssueComment[]
+
+  @@unique([repoId, number])
+  @@index([repoId, state])
+  @@index([authorId])
+}
+
+model IssueComment {
+  id        String   @id @default(cuid())
+  issueId   String
+  authorId  String
+  body      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  issue  Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  author User  @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([issueId])
+}

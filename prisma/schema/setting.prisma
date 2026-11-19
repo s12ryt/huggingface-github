@@ -1,0 +1,8 @@
+// 執行期可變設定的鍵值儲存
+//   Setting — 管理員在介面上調整的設定（目前為註冊模式），以鍵值對持久化，
+//             讓部署後不必重啟容器即可切換；未設定時由環境組態提供回落值。
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
